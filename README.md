@@ -31,4 +31,21 @@ can’t be reserved more than 30 days in advance.
 - To simplify the API is insecure
 ```
 
+## Setup and running
 
+First, clone the repository using the git command or the most preferred way:
+
+```
+git clone https://github.com/TheLeao/HotelCancun.git
+```
+
+The SDK for .Net 6 must be installed in order to run the solution. It can be downloaded here: https://dotnet.microsoft.com/en-us/download
+Then, it can be started by running the following command through a terminal, in the solution folder:
+
+```
+dotnet run
+```
+
+Or be initiated directly from Visual Studio 2022.
+
+The API should be running in the addresses 'https://localhost:7209' and 'http://localhost:5209' and ready to listen to requests.
