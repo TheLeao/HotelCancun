@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HotelCancun.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ReservationController : ControllerBase
     {
         private readonly IReservationService _reservationService;
@@ -39,7 +39,7 @@ namespace HotelCancun.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ReservationOperationResult>> GetById(long id)
         {
-            Reservation reservation = await _reservationService.GetReservationAsync(id);
+            Reservation? reservation = await _reservationService.GetReservationAsync(id);
 
             if (reservation != null)
                 return Ok(reservation);

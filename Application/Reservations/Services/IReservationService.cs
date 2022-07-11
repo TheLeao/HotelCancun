@@ -4,7 +4,7 @@ namespace Application.Reservations.Services
 {
     public interface IReservationService
     {
-        Task<Reservation> GetReservationAsync(long reservationId);
+        Task<Reservation?> GetReservationAsync(long reservationId);
         Task<List<Reservation>> GetReservationsAsync();
         Task<List<Reservation>> GetCancelledReservationsAsync();
         Task<bool> CheckRoomAvailabilityAsync(DateTime startDate, DateTime endDate);

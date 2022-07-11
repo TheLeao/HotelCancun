@@ -19,9 +19,10 @@ namespace Application.Reservations.Services
         /// <param name="reservationId"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Task<Reservation> GetReservationAsync(long reservationId)
+        public async Task<Reservation?> GetReservationAsync(long reservationId)
         {
-            throw new NotImplementedException();
+            Reservation? reservation = await _reservationRepository.GetByIdAsync(reservationId);
+            return reservation;
         }
 
         /// <summary>

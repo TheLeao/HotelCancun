@@ -154,8 +154,6 @@ namespace Tests
             Reservation reservation = new(DateTime.Now.AddDays(2), DateTime.Now.AddDays(5), "Jane Silvason");
             ReservationOperationResult result1 = await _reservationService.CreateReservationAsync(reservation);
 
-            long firstReservationId = result1.Data.Id;
-
             //Creating a second reservation, right after the first
             Reservation secondReservation = new(DateTime.Now.AddDays(6), DateTime.Now.AddDays(9), "Jane Silvason");
             ReservationOperationResult result = await _reservationService.CreateReservationAsync(secondReservation);
@@ -163,6 +161,93 @@ namespace Tests
             Assert.IsNotNull(result);
             Assert.IsFalse(result.Success);
             Assert.IsNotNull(result.Errors);
+        }
+
+        /// <summary>
+        /// Retrieving an existing reservation using its id. Should be valid
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task GetReservationById_Success()
+        {
+            //Creating a valid Reservation
+            Reservation reservation = new(DateTime.Now.AddDays(4), DateTime.Now.AddDays(6), "Jean Dupontson");
+            ReservationOperationResult result = await _reservationService.CreateReservationAsync(reservation);
+
+            long reservationId = result.Data.Id;
+
+            //Requesting the created reservation by its id
+            Reservation? retrievedReservation = await _reservationService.GetReservationAsync(reservationId);
+            Assert.IsNotNull(retrievedReservation);
+            Assert.AreEqual(reservationId, retrievedReservation.Id);
+        }
+
+        /// <summary>
+        /// Retrieving all reservations. Should be valid
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task GetAllReservations_Success()
+        {
+            //Creating valid Reservations
+            Reservation reservation1 = new(DateTime.Now.AddDays(4), DateTime.Now.AddDays(6), "Joanna Pierre");
+            await _reservationService.CreateReservationAsync(reservation1);
+
+            Reservation reservation2 = new(DateTime.Now.AddDays(7), DateTime.Now.AddDays(8), "José Doedoe");
+            await _reservationService.CreateReservationAsync(reservation2);
+
+            //Requesting all reservations
+            List<Reservation> retrievedReservations = await _reservationService.GetReservationsAsync();
+            Assert.IsNotNull(retrievedReservations);
+            Assert.IsTrue(retrievedReservations.Count > 1);
+        }
+
+        /// <summary>
+        /// Retrieving all reservations. Should not return the canceled reservation
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task GetAllReservations_Success_NoCanceled()
+        {
+            //Creating valid Reservations
+            Reservation reservation1 = new(DateTime.Now.AddDays(4), DateTime.Now.AddDays(6), "Joanna Pierre");
+            await _reservationService.CreateReservationAsync(reservation1);
+
+            Reservation reservation2 = new(DateTime.Now.AddDays(7), DateTime.Now.AddDays(8), "José Doedoe");
+            await _reservationService.CreateReservationAsync(reservation2);
+
+            //Canceling the second reservation
+            await _reservationService.CancelReservationAsync(reservation2.Id);
+
+            //Requesting all reservations (except canceled)
+            List<Reservation> retrievedReservations = await _reservationService.GetReservationsAsync();
+            Assert.IsNotNull(retrievedReservations);
+            Assert.IsTrue(retrievedReservations.Count(r => r.Canceled) == 0);
+            Assert.IsFalse(retrievedReservations.First().Canceled);
+        }
+
+        /// <summary>
+        /// Retrieving all reservations that were canceled
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task GetCanceledReservations_Success()
+        {
+            //Creating valid Reservations
+            Reservation reservation1 = new(DateTime.Now.AddDays(4), DateTime.Now.AddDays(6), "Janette Doeschmitt");
+            await _reservationService.CreateReservationAsync(reservation1);
+
+            Reservation reservation2 = new(DateTime.Now.AddDays(7), DateTime.Now.AddDays(8), "Jack Silvasmith");
+            ReservationOperationResult result = await _reservationService.CreateReservationAsync(reservation2);
+
+            //Canceling the second reservation
+            await _reservationService.CancelReservationAsync(reservation2.Id);
+
+            //Requesting all canceled reservations
+            List<Reservation> retrievedReservations = await _reservationService.GetCancelledReservationsAsync();
+            Assert.IsNotNull(retrievedReservations);
+            Assert.IsTrue(retrievedReservations.Count(r => !r.Canceled) == 0);
+            Assert.IsTrue(retrievedReservations.All(r => r.Canceled));
         }
 
         /// <summary>
