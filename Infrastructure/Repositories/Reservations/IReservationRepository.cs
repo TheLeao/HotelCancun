@@ -6,7 +6,7 @@ namespace Infrastructure.Repositories.Reservations
     {
         Task<List<Reservation>> GetCanceledAsync();
         Task<List<Reservation>> GetCurrentReservationsAsync();
-        Task<bool> AreReservationsInPeriodAsync(DateTime startDate, DateTime endDate);
+        Task<List<Reservation>> GetReservationsByPeriodAsync(DateTime startDate, DateTime endDate);
         Task<List<Reservation>> GetReservationsByGuest(string guestName);
     }
 }

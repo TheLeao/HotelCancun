@@ -11,6 +11,7 @@ namespace Tests
     [TestClass]
     public class ReservationTests
     {
+        private readonly DatabaseContext _databaseContext;
         private readonly IReservationService _reservationService;
         private readonly IReservationRepository _reservationRepository;
 
@@ -24,9 +25,18 @@ namespace Tests
                 .ConfigureWarnings(b => b.Ignore(InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
 
-            DatabaseContext databaseContext = new(contextOptions);
-            _reservationRepository = new ReservationRepository(databaseContext);
+            _databaseContext = new DatabaseContext(contextOptions);
+            _reservationRepository = new ReservationRepository(_databaseContext);
             _reservationService = new ReservationService(_reservationRepository);
+        }
+
+        /// <summary>
+        /// Cleans database after every test to guarantee isolation between tests
+        /// </summary>
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _databaseContext.Database.EnsureDeleted();
         }
 
         /// <summary>
@@ -251,6 +261,30 @@ namespace Tests
         }
 
         /// <summary>
+        /// Retrieving reservations within the specified period. Should be valid
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task GetReservationsByPeriod_Success()
+        {
+            //Creating valid Reservations
+            Reservation reservation1 = new(DateTime.Now.AddDays(4), DateTime.Now.AddDays(6), "Joe Joeson");
+            await _reservationService.CreateReservationAsync(reservation1);
+
+            Reservation reservation2 = new(DateTime.Now.AddDays(7), DateTime.Now.AddDays(8), "Janette Jane");
+            await _reservationService.CreateReservationAsync(reservation2);
+
+            Reservation reservation3 = new(DateTime.Now.AddDays(10), DateTime.Now.AddDays(12), "Janine Janeson");
+            await _reservationService.CreateReservationAsync(reservation3);
+
+            //Requesting reservations from 2 days to 8 days as of now. The third reservation should not come, as it belongs to a further date
+            List<Reservation> retrievedReservations = await _reservationService.GetReservationsByPeriodAsync(DateTime.Now.AddDays(2), DateTime.Now.AddDays(8));
+            Assert.IsNotNull(retrievedReservations);
+            Assert.IsTrue(retrievedReservations.Count == 2);
+            Assert.IsFalse(retrievedReservations.Any(r => r.Id == reservation3.Id));
+        }
+
+        /// <summary>
         /// Canceling a reservation by informing its id. Should be valid
         /// </summary>
         /// <returns></returns>
@@ -283,7 +317,7 @@ namespace Tests
         public async Task CancelReservation_Failure_NotFound()
         {
             //Passing an inexistent id as parameter
-            ReservationOperationResult result = await _reservationService.CancelReservationAsync(99);            
+            ReservationOperationResult result = await _reservationService.CancelReservationAsync(99);
             Assert.IsFalse(result.Success);
             Assert.IsNotNull(result.Errors);
         }
@@ -361,6 +395,30 @@ namespace Tests
             Assert.IsNotNull(modifyResult);
             Assert.IsFalse(modifyResult.Success);
             Assert.IsNotNull(modifyResult.Errors);
+        }
+
+        /// <summary>
+        /// Attempting to modify a reservation with a date adjacent to another reservation of the same guest. Should not be valid
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task ModifyReservation_Failure_MoreThan3Days()
+        {
+            //Creating a valid Reservation
+            Reservation reservation1 = new(DateTime.Now.AddDays(2), DateTime.Now.AddDays(5), "Johnny Johnson");
+            await _reservationService.CreateReservationAsync(reservation1);
+
+            //Creating a reservation in a valid date after the previous one
+            Reservation reservation2 = new(DateTime.Now.AddDays(7), DateTime.Now.AddDays(8), "Johnny Johnson");
+            await _reservationService.CreateReservationAsync(reservation2);
+
+            //Trying to modify the second reservation to a day right after the previous one
+            Reservation modifiedReservation = new(DateTime.Now.AddDays(7), DateTime.Now.AddDays(8), "Johnny Johnson");
+            ReservationOperationResult result = await _reservationService.ModifyReservationAsync(reservation2.Id, modifiedReservation);
+
+            Assert.IsNotNull(result);
+            Assert.IsFalse(result.Success);
+            Assert.IsNotNull(result.Errors);
         }
 
         /// <summary>

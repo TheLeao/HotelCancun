@@ -14,7 +14,7 @@ namespace Infrastructure.Repositories.Reservations
         /// <returns></returns>
         public async Task<List<Reservation>> GetCurrentReservationsAsync()
         {
-            var result = await databaseContext.Reservations.Where(r => !r.Canceled && r.EndDate > DateTime.Now).ToListAsync();
+            var result = await databaseContext.Reservations.Where(r => !r.Canceled && r.EndDate.Date > DateTime.Now).ToListAsync();
             return result;
         }
 
@@ -34,10 +34,10 @@ namespace Infrastructure.Repositories.Reservations
         /// <param name="startDate"></param>
         /// <param name="endDate"></param>
         /// <returns></returns>
-        public async Task<bool> AreReservationsInPeriodAsync(DateTime startDate, DateTime endDate)
+        public async Task<List<Reservation>> GetReservationsByPeriodAsync(DateTime startDate, DateTime endDate)
         { 
-            var result = await databaseContext.Reservations.AnyAsync(r => r.StartDate >= startDate && r.EndDate <= endDate);
-            return result;
+            var reservations = await databaseContext.Reservations.Where(r => r.StartDate.Date >= startDate.Date && r.EndDate.Date <= endDate.Date).ToListAsync();
+            return reservations;
         }
 
         /// <summary>

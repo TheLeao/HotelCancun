@@ -98,6 +98,12 @@ namespace Application.Reservations.Services
                 if (reservation.ReservedBy != reservationToUpdate.ReservedBy)
                     return new ReservationOperationResult(new string[] { "Changing the placer of the reservation is not allowed." });
 
+                if (!await CheckRoomAvailabilityAsync(reservation.StartDate, reservation.EndDate))
+                    return new ReservationOperationResult(new string[] { "The selected period is not available." });
+
+                if (!await ValidateGuestCurrentReservations(reservation.StartDate, reservation.EndDate, reservation.ReservedBy))
+                    return new ReservationOperationResult(new string[] { "A guest can not reserve more than 3 days straight." });
+
                 reservationToUpdate.UpdateDates(reservation.StartDate, reservation.EndDate);
 
                 reservationToUpdate = await _reservationRepository.UpdateAsync(reservationId, reservationToUpdate);
@@ -125,8 +131,8 @@ namespace Application.Reservations.Services
         /// <returns></returns>
         public async Task<bool> CheckRoomAvailabilityAsync(DateTime startDate, DateTime endDate)
         {
-            bool existingReservations = await _reservationRepository.AreReservationsInPeriodAsync(startDate, endDate);
-            return !existingReservations;
+            var reservations = await _reservationRepository.GetReservationsByPeriodAsync(startDate, endDate);
+            return reservations.Count == 0;
         }
 
         /// <summary>
@@ -134,7 +140,7 @@ namespace Application.Reservations.Services
         /// </summary>
         /// <param name="reservedBy"></param>
         /// <returns></returns>
-        public async Task<List<Reservation>> GetReservationByGuest(string reservedBy)
+        public async Task<List<Reservation>> GetReservationsByGuestAsync(string reservedBy)
         {
             List<Reservation> reservations = await _reservationRepository.GetReservationsByGuest(reservedBy);
             return reservations;
@@ -169,6 +175,18 @@ namespace Application.Reservations.Services
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns the not canceled reservations in the specified period
+        /// </summary>
+        /// <param name="startDate"></param>
+        /// <param name="endDate"></param>
+        /// <returns></returns>
+        public Task<List<Reservation>> GetReservationsByPeriodAsync(DateTime startDate, DateTime endDate)
+        {
+            var reservations = _reservationRepository.GetReservationsByPeriodAsync(startDate, endDate);
+            return reservations;
         }
     }
 }

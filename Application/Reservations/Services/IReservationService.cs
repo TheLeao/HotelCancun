@@ -11,6 +11,7 @@ namespace Application.Reservations.Services
         Task<ReservationOperationResult> CancelReservationAsync(long reservationId);
         Task<ReservationOperationResult> ModifyReservationAsync(long reservationId, Reservation reservation);
         Task<ReservationOperationResult> CreateReservationAsync(Reservation reservation);
-        Task<List<Reservation>> GetReservationByGuest(string reservedBy);
+        Task<List<Reservation>> GetReservationsByGuestAsync(string reservedBy);
+        Task<List<Reservation>> GetReservationsByPeriodAsync(DateTime startDate, DateTime endDate);
     }
 }

@@ -128,7 +128,20 @@ namespace HotelCancun.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<List<Reservation>>> GetReservationsByGuest(string reservedBy)
         {
-            List<Reservation> reservations = await _reservationService.GetReservationByGuest(reservedBy);
+            List<Reservation> reservations = await _reservationService.GetReservationsByGuestAsync(reservedBy);
+            return Ok(reservations);
+        }
+
+        /// <summary>
+        /// Returns all current reservations for the specified period
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("period")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<Reservation>>> GetReservationsByPeriod(DateTime startDate, DateTime endDate)
+        {
+            List<Reservation> reservations = await _reservationService.GetReservationsByPeriodAsync(startDate, endDate);
             return Ok(reservations);
         }
     }
