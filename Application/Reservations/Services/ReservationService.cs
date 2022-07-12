@@ -98,9 +98,7 @@ namespace Application.Reservations.Services
                 if (reservation.ReservedBy != reservationToUpdate.ReservedBy)
                     return new ReservationOperationResult(new string[] { "Changing the placer of the reservation is not allowed." });
 
-                reservationToUpdate.StartDate = reservation.StartDate;
-                reservationToUpdate.EndDate = reservation.EndDate;
-                reservationToUpdate.ReservedBy = reservation.ReservedBy;
+                reservationToUpdate.UpdateDates(reservation.StartDate, reservation.EndDate);
 
                 reservationToUpdate = await _reservationRepository.UpdateAsync(reservationId, reservationToUpdate);
                 return new ReservationOperationResult(reservationToUpdate);
