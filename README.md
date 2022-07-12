@@ -49,3 +49,17 @@ dotnet run
 Or be initiated directly from Visual Studio 2022.
 
 The API should be running in the addresses 'https://localhost:7209' and 'http://localhost:5209' and ready to listen to requests.
+
+## Reservations
+
+The reservations are the domain entity that is worked with in this project. All projects of the solution are aimed towards operating directly with it. The Reservation class has the following properties:
+- StartDate (DateTime)
+- EndDate (DateTime)
+- Canceled (Bool)
+- ReservedBy (String)
+
+The dates represent the beginning and end of the stay in the hotel's room. 
+The boolean property informs if the reservation has been canceled. After being canceled, the same reservation cannot be reopened. 
+And lastly, a string indicating to whom the reservation is placed for.
+
+The inclusion of the ReservedBy property in this scenario is to enforce the rule "**To give a chance to everyone to book the room** the stay can’t be longer than 3 days" of the requirements. By knowing who is booking the room, is possible to prevent the same person from reserving more than 3 days straight, through multiple reservations.
